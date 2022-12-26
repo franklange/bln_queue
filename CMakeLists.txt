@@ -5,6 +5,7 @@ find_package(Threads REQUIRED)
 find_package(Boost REQUIRED COMPONENTS fiber)
 
 option(BLN_QUEUE_TESTS "Enable BLN Queue Tests" OFF)
+option(BLN_QUEUE_EXAMPLES "Enable BLN Examples" OFF)
 
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Build Type" FORCE)
@@ -31,4 +32,8 @@ target_link_libraries(${PROJECT_NAME} INTERFACE
 if (BLN_QUEUE_TESTS)
     enable_testing()
     add_subdirectory(test)
+endif()
+
+if (BLN_QUEUE_EXAMPLES)
+    add_subdirectory(example)
 endif()

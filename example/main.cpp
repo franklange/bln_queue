@@ -1,11 +1,3 @@
-# bln_queue
-Small collection of message queues.
-
-### Dependencies
-* Boost::fiber
-
-### Example
-```c++
 #include <bln_queue/msg_queue.hpp>
 
 #include <iostream>
@@ -32,13 +24,3 @@ auto main() -> int
 
     return 0;
 }
-```
-
-### Build & Run example
-```bash
-mkdir build
-cd build
-cmake -DBLN_QUEUE_EXAMPLES=ON ..
-cmake --build . -j
-./bin/bln_queue_example
-```
