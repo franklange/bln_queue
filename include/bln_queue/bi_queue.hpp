@@ -4,7 +4,6 @@
 
 #include <cstddef>
 #include <optional>
-#include <utility>
 
 namespace bln_queue {
 
@@ -12,15 +11,10 @@ template <typename W, typename R>
 class bi_queue
 {
 public:
-    using write_type = W;
-    using read_type = R;
-
     bi_queue(msg_queue<W>&, msg_queue<R>&);
 
-    template <typename U = W>
-    auto put(U&&) -> bool;
-
-    auto get() -> std::optional<R>;
+    auto put(W) -> bool;
+    auto get()  -> std::optional<R>;
 
     auto wait() -> R;
     auto wait(const timeout&) -> std::optional<R>;
@@ -60,10 +54,9 @@ bi_queue<W, R>::bi_queue(msg_queue<W>& w, msg_queue<R>& r)
 {}
 
 template <typename W, typename R>
-template <typename U>
-auto bi_queue<W, R>::put(U&& u) -> bool
+auto bi_queue<W, R>::put(W w) -> bool
 {
-    return m_write.put(std::forward<U>(u));
+    return m_write.put(std::move(w));
 }
 
 template <typename W, typename R>

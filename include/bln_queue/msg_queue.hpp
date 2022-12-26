@@ -7,31 +7,25 @@
 
 #include <cstddef>
 #include <optional>
-#include <utility>
 
 namespace bln_queue {
 
 template <typename T>
 class msg_queue
 {
-    using status = boost::fibers::channel_op_status;
-    using queue  = boost::fibers::buffered_channel<T>;
-
 public:
-    using write_type = T;
-    using read_type = T;
-
     msg_queue(std::size_t = 128);
 
-    template <typename W = T>
-    auto put(W&&) -> bool;
-
-    auto get() -> std::optional<T>;
+    auto put(T) -> bool;
+    auto get()  -> std::optional<T>;
 
     auto wait() -> T;
     auto wait(const timeout&) -> std::optional<T>;
 
 private:
+    using status = boost::fibers::channel_op_status;
+    using queue  = boost::fibers::buffered_channel<T>;
+
     queue m_queue;
 };
 
@@ -41,10 +35,9 @@ msg_queue<T>::msg_queue(const std::size_t s)
 {}
 
 template <typename T>
-template <typename W>
-auto msg_queue<T>::put(W&& w) -> bool
+auto msg_queue<T>::put(T t) -> bool
 {
-    return (status::success == m_queue.try_push(std::forward<W>(w)));
+    return (status::success == m_queue.try_push(std::move(t)));
 }
 
 template <typename T>

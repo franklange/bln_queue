@@ -5,36 +5,30 @@
 #include <array>
 #include <cstddef>
 #include <optional>
-#include <utility>
 
 namespace bln_queue {
 
 template <typename T, std::size_t N>
 class data_queue
 {
-    using queue = boost::lockfree::queue<T, boost::lockfree::capacity<N>>;
-
 public:
-    using write_type = T;
-    using read_type = T;
-
-    template <typename W = T>
-    auto put(W&&) -> bool;
-
-    auto get() -> std::optional<T>;
+    auto put(T) -> bool;
+    auto get()  -> std::optional<T>;
 
     template <std::size_t K>
     auto get(std::array<T, K>&) -> std::size_t;
 
 private:
+    using capacity = boost::lockfree::capacity<N>;
+    using queue = boost::lockfree::queue<T, capacity>;
+
     queue m_queue;
 };
 
 template <typename T, std::size_t N>
-template <typename W>
-auto data_queue<T, N>::put(W&& w) -> bool
+auto data_queue<T, N>::put(T t) -> bool
 {
-    return m_queue.bounded_push(std::forward<W>(w));
+    return m_queue.bounded_push(std::move(t));
 }
 
 template <typename T, std::size_t N>
