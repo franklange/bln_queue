@@ -2,11 +2,11 @@
 
 #include <bln_queue/types.hpp>
 
-#include <boost/fiber/fiber.hpp>
-#include <boost/fiber/buffered_channel.hpp>
-
 #include <cstddef>
+#include <list>
+#include <mutex>
 #include <optional>
+#include <semaphore>
 
 namespace bln_queue {
 
@@ -14,54 +14,76 @@ template <typename T>
 class msg_queue
 {
 public:
-    msg_queue(std::size_t = 128);
-
-    auto put(T) -> bool;
+    auto put(T) -> std::size_t;
     auto get()  -> std::optional<T>;
 
     auto wait() -> T;
     auto wait(const timeout&) -> std::optional<T>;
 
 private:
-    using status = boost::fibers::channel_op_status;
-    using queue  = boost::fibers::buffered_channel<T>;
+    auto pop() -> T;
 
-    queue m_queue;
+    struct mutex
+    {
+        void lock()  { m_semaphore.acquire(); }
+        void unlock(){ m_semaphore.release(); }
+
+        std::binary_semaphore m_semaphore{1};
+    };
+
+    using lock = std::lock_guard<mutex>;
+    using semaphore = std::counting_semaphore<>;
+
+    mutex m_mutex;
+    semaphore m_signal{0};
+
+    std::list<T> m_queue;
 };
 
 template <typename T>
-msg_queue<T>::msg_queue(const std::size_t s)
-    : m_queue{s}
-{}
-
-template <typename T>
-auto msg_queue<T>::put(T t) -> bool
+auto msg_queue<T>::put(T t) -> std::size_t
 {
-    return (status::success == m_queue.try_push(std::move(t)));
+    const lock l{m_mutex};
+
+    m_queue.push_back(std::move(t));
+    m_signal.release();
+
+    return m_queue.size();
 }
 
 template <typename T>
 auto msg_queue<T>::get() -> std::optional<T>
 {
-    T tmp;
-    return (status::success == m_queue.try_pop(tmp))
-        ? tmp
-        : std::optional<T>{};
+    const lock l{m_mutex};
+    return m_queue.empty() ? std::optional<T>{} : pop();
 }
 
 template <typename T>
 auto msg_queue<T>::wait() -> T
 {
-    return m_queue.value_pop();
+    m_signal.acquire();
+
+    const lock l{m_mutex};
+    return pop();
 }
 
 template <typename T>
 auto msg_queue<T>::wait(const timeout& t) -> std::optional<T>
 {
-    T tmp;
-    return (status::success == m_queue.pop_wait_for(tmp, t))
-        ? tmp
-        : std::optional<T>{};
+    if (!m_signal.try_acquire_for(t))
+        return {};
+
+    const lock l{m_mutex};
+    return pop();
+}
+
+template <typename T>
+auto msg_queue<T>::pop() -> T
+{
+    const T t = std::move(m_queue.front());
+    m_queue.pop_front();
+
+    return t;
 }
 
 } // namespace bln_queue

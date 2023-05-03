@@ -43,8 +43,6 @@ private:
 
 template <typename W, typename R>
 BiQueue<W, R>::BiQueue(const std::size_t s)
-    : m_qa{s}
-    , m_qb{s}
 {}
 
 template <typename W, typename R>

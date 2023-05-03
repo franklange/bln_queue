@@ -6,7 +6,7 @@ namespace bln_queue::test {
 
 struct msg_queue_test : public ::testing::Test
 {
-    msg_queue<int> m_queue{16};
+    msg_queue<int> m_queue;
 };
 
 TEST_F(msg_queue_test, get_on_empty)
