@@ -11,20 +11,22 @@ if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Build Type" FORCE)
 endif()
 
-add_library(${PROJECT_NAME} INTERFACE "")
-set_target_properties(${PROJECT_NAME} PROPERTIES LINKER_LANGUAGE CXX)
+add_library(${PROJECT_NAME} "")
 
 target_sources(${PROJECT_NAME} PRIVATE
     include/bln_queue/types.hpp
     include/bln_queue/bi_queue.hpp
     include/bln_queue/data_queue.hpp
     include/bln_queue/msg_queue.hpp
+    include/bln_queue/spinlock.hpp
+
+    src/spinlock.cpp
 )
 
-target_include_directories(${PROJECT_NAME} INTERFACE include)
-target_compile_features(${PROJECT_NAME} INTERFACE cxx_std_20)
+target_include_directories(${PROJECT_NAME} PUBLIC include)
+target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_20)
 
-target_link_libraries(${PROJECT_NAME} INTERFACE
+target_link_libraries(${PROJECT_NAME} PUBLIC
     Boost::fiber
     Threads::Threads
 )
