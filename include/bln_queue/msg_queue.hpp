@@ -1,10 +1,10 @@
 #pragma once
 
+#include <bln_queue/spinlock.hpp>
 #include <bln_queue/types.hpp>
 
 #include <cstddef>
 #include <list>
-#include <mutex>
 #include <optional>
 #include <semaphore>
 
@@ -23,21 +23,13 @@ public:
 private:
     auto pop() -> T;
 
-    struct mutex
-    {
-        void lock()  { m_semaphore.acquire(); }
-        void unlock(){ m_semaphore.release(); }
-
-        std::binary_semaphore m_semaphore{1};
-    };
-
-    using lock = std::lock_guard<mutex>;
+    using lock = std::lock_guard<spinlock>;
     using semaphore = std::counting_semaphore<>;
 
-    mutex m_mutex;
-    semaphore m_signal{0};
+    spinlock  m_mutex{};
+    semaphore m_semaphore{0};
 
-    std::list<T> m_queue;
+    std::list<T> m_queue{};
 };
 
 template <typename T>
@@ -46,7 +38,7 @@ auto msg_queue<T>::put(T t) -> std::size_t
     const lock l{m_mutex};
 
     m_queue.push_back(std::move(t));
-    m_signal.release();
+    m_semaphore.release();
 
     return m_queue.size();
 }
@@ -61,7 +53,7 @@ auto msg_queue<T>::get() -> std::optional<T>
 template <typename T>
 auto msg_queue<T>::wait() -> T
 {
-    m_signal.acquire();
+    m_semaphore.acquire();
 
     const lock l{m_mutex};
     return pop();
@@ -70,7 +62,7 @@ auto msg_queue<T>::wait() -> T
 template <typename T>
 auto msg_queue<T>::wait(const timeout& t) -> std::optional<T>
 {
-    if (!m_signal.try_acquire_for(t))
+    if (!m_semaphore.try_acquire_for(t))
         return {};
 
     const lock l{m_mutex};
