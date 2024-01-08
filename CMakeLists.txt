@@ -1,9 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 project(bln_queue)
 
-find_package(Threads REQUIRED)
-find_package(Boost REQUIRED COMPONENTS fiber)
-
 option(BLN_QUEUE_TESTS "Enable BLN Queue Tests" OFF)
 option(BLN_QUEUE_EXAMPLES "Enable BLN Examples" OFF)
 
@@ -14,11 +11,8 @@ endif()
 add_library(${PROJECT_NAME} "")
 
 target_sources(${PROJECT_NAME} PRIVATE
-    include/bln_queue/types.hpp
-    include/bln_queue/bi_queue.hpp
-    include/bln_queue/data_queue.hpp
-    include/bln_queue/msg_queue.hpp
-    include/bln_queue/spinlock.hpp
+    include/bln_queue/queue.h
+    include/bln_queue/spinlock.h
 
     src/spinlock.cpp
 )
@@ -26,12 +20,11 @@ target_sources(${PROJECT_NAME} PRIVATE
 target_include_directories(${PROJECT_NAME} PUBLIC include)
 target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_20)
 
-target_link_libraries(${PROJECT_NAME} PUBLIC
-    Boost::fiber
-    Threads::Threads
-)
-
 if (BLN_QUEUE_TESTS)
+    if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
+        add_compile_options(-Wall -Wextra -pedantic)
+    endif()
+
     enable_testing()
     add_subdirectory(test)
 endif()

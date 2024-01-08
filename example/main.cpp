@@ -1,4 +1,4 @@
-#include <bln_queue/msg_queue.hpp>
+#include <bln_queue/queue.h>
 
 #include <iostream>
 #include <string>
@@ -6,9 +6,9 @@
 
 auto main() -> int
 {
-    bln_queue::msg_queue<std::string> queue;
+    bln_queue::queue<std::string> queue;
 
-    std::thread ui{[&queue](){
+    std::thread tui{[&queue](){
         std::string in;
         while (std::getline(std::cin, in))
             queue.put(in);
@@ -19,7 +19,7 @@ auto main() -> int
             std::cout << queue.wait() << std::endl;
     }};
 
-    ui.join();
+    tui.join();
     printer.join();
 
     return 0;

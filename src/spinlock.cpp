@@ -1,4 +1,4 @@
-#include <bln_queue/spinlock.hpp>
+#include <bln_queue/spinlock.h>
 
 namespace bln_queue {
 

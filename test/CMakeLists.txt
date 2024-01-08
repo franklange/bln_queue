@@ -3,16 +3,11 @@ project(bln_queue_test)
 find_package(GTest REQUIRED)
 include(GoogleTest)
 
-add_executable(${PROJECT_NAME} "")
+add_executable(${PROJECT_NAME} queue_TEST.cpp)
 
 set_target_properties(${PROJECT_NAME} PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin/tests"
-)
-
-target_sources(${PROJECT_NAME} PRIVATE
-    bi_queue_TEST.cpp
-    data_queue_TEST.cpp
-    msg_queue_TEST.cpp
+    OUTPUT_NAME "tests"
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin/"
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
